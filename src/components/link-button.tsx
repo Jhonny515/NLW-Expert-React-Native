@@ -1,13 +1,13 @@
 import { Link, LinkProps } from "expo-router";
 
-type LinkButtonProps = LinkProps<String> & {
+type LinkButtonProps = LinkProps<string> & {
     title: string;
-    href: string;
+    href: '/';
 }
 
 export function LinkButton({ title, ...rest }: LinkButtonProps) {
     return (
-        <Link className="text-slate-300 text-center text-base font-body" {...rest}>
+        <Link className="text-slate-300 text-center text-base font-body py-2" href={rest.href}>
             {title}
         </Link>
     )
