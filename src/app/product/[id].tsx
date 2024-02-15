@@ -6,6 +6,7 @@ import { Button } from "@/components/button";
 import { Feather } from "@expo/vector-icons";
 import { LinkButton } from "@/components/link-button";
 import { useCartStore } from "@/stores/cart-stores";
+import Toast from "@/components/Toast";
 
 export default function Product() {
     const cartStore = useCartStore();
@@ -17,6 +18,10 @@ export default function Product() {
     function handleAddToCart() {
         if (product) {
             cartStore.add(product);
+            Toast.show({
+                message: `${product.title} adicionado ao carrinho`,
+                type: 'success',
+            });
             navigation.goBack();
         }
     }
