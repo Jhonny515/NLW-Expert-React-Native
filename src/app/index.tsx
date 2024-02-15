@@ -1,11 +1,11 @@
 import { CategoryButton } from "@/components/category-button";
 import { Header } from "@/components/header";
 import { Product } from "@/components/product";
-import { View, FlatList, SectionList, Text } from "react-native";
-import { CATEGORIES, MENU, ProductProps } from "@/utils/data/products";
-import { useState, useRef } from "react";
-import { Link } from 'expo-router';
 import { useCartStore } from "@/stores/cart-stores";
+import { CATEGORIES, MENU, ProductProps } from "@/utils/data/products";
+import { Link } from 'expo-router';
+import { useRef, useState } from "react";
+import { FlatList, SectionList, Text, View } from "react-native";
 
 export default function Home() {
     const store = useCartStore();

@@ -1,15 +1,19 @@
-import { Header } from "@/components/header";
-import { Product } from "@/components/product";
-import { ProductCartProps, useCartStore } from "@/stores/cart-stores";
-import { formatCurrency } from "@/utils/functions/format-currency";
-import { Text, View, ScrollView, Alert, Linking } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { Input } from "@/components/input";
+import Toast from "@/components/Toast";
 import { Button } from "@/components/button";
-import { Feather } from "@expo/vector-icons";
+import { Header } from "@/components/header";
+import { Input } from "@/components/input";
 import { LinkButton } from "@/components/link-button";
-import { useState } from "react";
+import { Product } from "@/components/product";
+
+import { ProductCartProps, useCartStore } from "@/stores/cart-stores";
+
+import { formatCurrency } from "@/utils/functions/format-currency";
+
+import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
+import { useRef, useState } from "react";
+import { Alert, Linking, ScrollView, Text, TextInput, TextInputProps, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const PHONE_NUMBER = "5511961414361"
 
@@ -21,9 +25,17 @@ export default function Cart() {
         complemento: "",
         cep: "",
     }
+
     const [address, setAddress] = useState(initialAddressState);
     const cartStore = useCartStore();
     const navigation = useNavigation();
+
+    const logradouroInput = useRef<TextInput | null>(null);
+    const numeroInput = useRef<TextInput | null>(null);
+    const bairroInput = useRef<TextInput | null>(null);
+    const complementoInput = useRef<TextInput | null>(null);
+    const cepInput = useRef<TextInput | null>(null);
+
     const total = formatCurrency(
     cartStore.products.reduce((total, product) => { return total + product.price * product.quantity }, 0)
     )
@@ -35,7 +47,10 @@ export default function Cart() {
             },
             {
                 text: "Remover",
-                onPress: () => cartStore.remove(product.id),
+                onPress: () => {
+                    cartStore.remove(product.id);
+                    Toast.show({ message: `${product.title} removido do carrinho`});
+                },
             }
         ])
     }
@@ -52,28 +67,35 @@ export default function Cart() {
         return noEmptyFields;
     }
     const formatAddress = () => {
-        return `${address.logradouro}, Nº${address.numero}, ${address.complemento} - ${address.bairro} - ${address.cep}`;
+        return `${address.logradouro.trim()}, Nº${address.numero.trim()}, ${address.complemento.trim()} - ${address.bairro.trim()} - CEP ${address.cep.trim()}`;
     }
 
-    function handleOrder() {
-        console.log(address);
-        
-        if (!validateNoEmptyFields()) {
-            Alert.alert("Pedido", "Informe os dados da entrega");
-            return;
-        }
-
+    const sendOrder = () => {
         const products = cartStore.products.map(product => `\n ${product.quantity}x ${product.title}`).join();
-        
-        const message = `NOVO PEDIDO
-        \n ${products}
-        \n Entregar em: ${formatAddress()}
-        \n Valor total: ${total}`;
+            
+        const message = `NOVO PEDIDO\n${products}\nEntregar em: ${formatAddress()}\n \nValor total: ${total}`;
 
         console.log(message);
         Linking.openURL(`http://api.whatsapp.com/send?phone=${PHONE_NUMBER}&text=${message}`)
         cartStore.clear();
         navigation.goBack();
+    }
+
+    function handleOrder() {
+        
+        if (!validateNoEmptyFields()) {
+            Alert.alert("Pedido", "Informe os dados da entrega");
+            return;
+        }
+        Alert.alert("Confirmar pedido", `Confirma envio do pedido?`, [
+            {
+                text: "Cancelar",
+            },
+            {
+                text: "Confirmar",
+                onPress: () => sendOrder(),
+            }
+        ])
     }
 
     return (
@@ -91,17 +113,17 @@ export default function Cart() {
                         </Text>
                     )}
                     <View className="flex-row gap-1 h-16 my-1">
-                        <Input placeholder="Logradouro" className="w-3/4" returnKeyType="next" onChangeText={(text) => setAddress({...address, logradouro: text})} />
-                        <Input placeholder="No" className="w-1/4" returnKeyType="next" onChangeText={(text) => setAddress({...address, numero: text})} />
+                        <Input ref={logradouroInput} placeholder="Logradouro" className="w-3/4" returnKeyType="next" onChangeText={(text) => setAddress({...address, logradouro: text})} blurOnSubmit={false} onSubmitEditing={() => numeroInput.current?.focus()} />
+                        <Input ref={numeroInput} placeholder="Nº" maxLength={8} className="w-1/4" returnKeyType="next" onChangeText={(text) => setAddress({...address, numero: text})} blurOnSubmit={false} onSubmitEditing={() => bairroInput.current?.focus()} />
                     </View>
                     <View className="flex-row gap-1 h-16 my-1">
-                        <Input placeholder="Bairro" className="w-full" returnKeyType="next" onChangeText={(text) => setAddress({...address, bairro: text})} />
+                        <Input ref={bairroInput} placeholder="Bairro" maxLength={20} className="w-full" returnKeyType="next" onChangeText={(text) => setAddress({...address, bairro: text})} blurOnSubmit={false} onSubmitEditing={() => complementoInput.current?.focus()} />
                     </View>
                     <View className="flex-row gap-1 h-16 my-1">
-                        <Input placeholder="Complemento" className="w-full" returnKeyType="next" onChangeText={(text) => setAddress({...address, complemento: text})} />
+                        <Input ref={complementoInput} placeholder="Complemento" className="w-full" returnKeyType="next" onChangeText={(text) => setAddress({...address, complemento: text})} blurOnSubmit={false} onSubmitEditing={() => cepInput.current?.focus()} />
                     </View>
                     <View className="flex-row gap-1 h-16 my-1">
-                        <Input placeholder="CEP" className="w-full" returnKeyType="next" onChangeText={(text) => setAddress({...address, cep: text})} />
+                        <Input ref={cepInput} placeholder="CEP" inputMode="numeric" maxLength={8} className="w-full" returnKeyType="done" onChangeText={(text) => setAddress({...address, cep: text})} onSubmitEditing={handleOrder} />
                     </View>
                 </View>
             </ScrollView></KeyboardAwareScrollView>
