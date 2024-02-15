@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import React, { useEffect, useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Animated, Text } from "react-native";
 import colors from "tailwindcss/colors";
 
@@ -18,40 +18,45 @@ export type ToastProps = {
 }
 
 type ToastConditionalProp = {
-    isShowing: number;
-    toastConditional: (bValue : number) => void;
+    animationValue: Animated.Value;
+    trigger: () => void;
+    animate: () => Animated.CompositeAnimation;
 }
 
-const props: ToastProps =  {
+const props: ToastProps = {
     message: '', type: 'success',
 }
 const conditionalProp: ToastConditionalProp = {
-    isShowing: 0,
-    toastConditional(bValue) {
-        return
-    },
-}
-
-function renderToast() {
-    const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
-
-    const { message, type } = props;
-
-    useEffect(() => {
-        Animated.sequence([
-            Animated.timing(fadeAnim, {
+    animationValue: new Animated.Value(0),
+    trigger: () => { },
+    animate: () => {
+        return Animated.sequence([
+            Animated.timing(conditionalProp.animationValue, {
                 toValue: 1,
                 duration: 1000,
                 useNativeDriver: true,
             }),
             Animated.delay(3000),
-            Animated.timing(fadeAnim, {
+            Animated.timing(conditionalProp.animationValue, {
                 toValue: 0,
                 duration: 1000,
                 useNativeDriver: true,
             }),
-        ]).start();
-    }, [fadeAnim]);
+        ]);
+    }
+
+}
+
+function Toast() {
+    const fadeAnim = useRef(conditionalProp.animationValue).current; // Initial value for opacity: 0
+    const [display, setDisplay] = useState<'none' | 'flex'>('none');
+
+    conditionalProp.trigger = () => {
+        setDisplay('flex');
+        conditionalProp.animate().start(() => { setDisplay('none') });
+    };
+
+    const { message, type } = props;
 
     const warn = (<Feather name="alert-triangle" size={20} color={colors.amber[400]} />)
     const error = (<Feather name="x-circle" size={20} color={colors.red[600]} />)
@@ -70,7 +75,7 @@ function renderToast() {
     }
 
     return (
-        <Animated.View className={"flex-row bg-slate-300 rounded-md gap-2 p-3 inset-x-6 bottom-12 z-20 mx-auto content-center justify-center shadow-2xl absolute"} style={{ opacity: fadeAnim }} >
+        <Animated.View className={"flex-row bg-slate-300 rounded-md gap-2 p-3 inset-x-6 bottom-12 z-20 mx-auto content-center justify-center shadow-2xl absolute"} style={{ opacity: fadeAnim, display: display }} >
             {icon()}
 
             <Text className="text-black font-body">{message}</Text>
@@ -78,18 +83,11 @@ function renderToast() {
     )
 }
 
-function Toast({ toastConditional, isShowing } : ToastConditionalProp) {
-    conditionalProp.isShowing = isShowing;
-    conditionalProp.toastConditional = toastConditional;
-}
-
 Toast.show = (newProps: ToastProps) => {
+    conditionalProp.animate().stop();
     props.message = newProps.message;
     props.type = newProps.type;
-    console.log(conditionalProp.isShowing + 1);
-    conditionalProp.toastConditional(conditionalProp.isShowing + 1);
+    conditionalProp.trigger();
 }
-
-Toast.render = renderToast;
 
 export default Toast;
