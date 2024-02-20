@@ -26,6 +26,8 @@ Execute o comando: `npm install` na pasta raiz do projeto para instalar as depen
 
 para executar o projeto.
 Siga as instruções mostradas no terminal para executar o projeto no seu dispositivo móvel ou, com o dispositivo virtual ligado, pressione a para a detecção automática do dispositivo.
+
+Para poder testar o envio de mensagem utilizando a api do *WhatsApp*, no arquivo `src\app\cart.tsx` adicione seu número de telefone, ou outro que você queira utilizar, na const **PHONE_NUMBER**. Com isso, a aplicação poderá usar a api do *WhatsApp* para enviar uma mensagem com o pedido gerado.
  
 ## Agradecimentos
 Agradecimentos a Rocketseat por nos proporcionar a chance de participar desse evento e a toda a comunidade pela ajuda e companherismo ao longo do projeto.
